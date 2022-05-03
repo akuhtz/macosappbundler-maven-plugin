@@ -36,5 +36,13 @@ public class AppConfiguration {
         this.includeDependencies = includeDependencies;
     }
 
-
+	@Parameter
+    public boolean singleDependencyAsApplicationJar = false;
+	
+    public boolean isSingleDependencyAsApplicationJar() {
+        return this.singleDependencyAsApplicationJar;
+    }
+	public void setSingleDependencyAsApplicationJar(boolean singleDependencyAsApplicationJar) {
+        this.singleDependencyAsApplicationJar = singleDependencyAsApplicationJar;
+    }
 }

@@ -87,16 +87,28 @@ public class AppGenerator {
     private void copyApplicationClasses(MavenProject project, File appJavaDirectory) throws MojoExecutionException {
         this.getLog().info("Copy application classes to: " + appJavaDirectory.getAbsolutePath());
         try {
-            if (StringUtils.isNotEmpty(this.getPlistConfiguration().JVMMainClassName)) {
-                this.copyClasspathApplicationClasses(project, new File(appJavaDirectory, "classpath"));
-            } else if (StringUtils.isNotEmpty(this.getPlistConfiguration().JVMMainModuleName)) {
-                this.copyModulesApplicationClasses(project, new File(appJavaDirectory, "modules"));
-            }
+			if (this.getAppConfiguration().isSingleDependencyAsApplicationJar() && project.getArtifacts().size() > 0) {
+				this.getLog().info("Copy single dependency as application jar: " + project.getArtifacts().iterator().next());
+				this.copySingleApplicationDependency(project, new File(appJavaDirectory, "classpath"));
+			}
+			else {
+				if (StringUtils.isNotEmpty(this.getPlistConfiguration().JVMMainClassName)) {
+					this.copyClasspathApplicationClasses(project, new File(appJavaDirectory, "classpath"));
+				} else if (StringUtils.isNotEmpty(this.getPlistConfiguration().JVMMainModuleName)) {
+					this.copyModulesApplicationClasses(project, new File(appJavaDirectory, "modules"));
+				}
+			}
         } catch (IOException e) {
             throw new MojoExecutionException("Cannot copy dependencies", e);
         }
     }
 
+    private void copySingleApplicationDependency(MavenProject project, File classpathDirectory) throws IOException {
+        ArtifactRepositoryLayout repositoryLayout = new DefaultRepositoryLayout();
+        Artifact artifact = project.getArtifacts().iterator().next();
+        this.copyClasspathApplicationDependencyArtifact(artifact, classpathDirectory, repositoryLayout);
+    }
+	
     private void copyClasspathApplicationClasses(MavenProject project, File classpathDirectory) throws IOException {
         ArtifactRepositoryLayout repositoryLayout = new DefaultRepositoryLayout();
         this.copyClasspathApplicationDependencyArtifact(project.getArtifact(), classpathDirectory, repositoryLayout);
