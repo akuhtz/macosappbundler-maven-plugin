@@ -29,6 +29,9 @@ public class AppConfiguration {
     @Parameter
     public boolean includeDependencies = true;
 
+    @Parameter
+    public boolean includeOnlyDirectDependencies = false;
+
     public boolean isIncludeDependencies() {
         return this.includeDependencies;
     }
@@ -36,5 +39,11 @@ public class AppConfiguration {
         this.includeDependencies = includeDependencies;
     }
 
+    public boolean isIncludeOnlyDirectDependencies() {
+        return this.includeOnlyDirectDependencies;
+    }
+    public void setIncludeOnlyDirectDependencies(boolean includeOnlyDirectDependencies) {
+        this.includeOnlyDirectDependencies = includeOnlyDirectDependencies;
+    }
 
 }

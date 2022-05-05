@@ -100,12 +100,17 @@ public class AppGenerator {
     private void copyClasspathApplicationClasses(MavenProject project, File classpathDirectory) throws IOException {
         ArtifactRepositoryLayout repositoryLayout = new DefaultRepositoryLayout();
         this.copyClasspathApplicationDependencyArtifact(project.getArtifact(), classpathDirectory, repositoryLayout);
-        if (this.getAppConfiguration().isIncludeDependencies()) {
+        if (this.getAppConfiguration().isIncludeOnlyDirectDependencies()) {
+            this.getLog().info("Include only direct dependencies.");
+            for (Artifact artifact : project.getDependencyArtifacts()) {
+                this.copyClasspathApplicationDependencyArtifact(artifact, classpathDirectory, repositoryLayout);
+            }
+        } else if (this.getAppConfiguration().isIncludeDependencies()) {
             for (Artifact artifact : project.getArtifacts()) {
                 this.copyClasspathApplicationDependencyArtifact(artifact, classpathDirectory, repositoryLayout);
             }
         } else {
-            this.getLog().debug("Inclusion of dependencies has been disbaled");
+            this.getLog().debug("Inclusion of dependencies has been disabled");
         }
     }
 
@@ -119,12 +124,17 @@ public class AppGenerator {
 
     private void copyModulesApplicationClasses(MavenProject project, File modulesDirectory) throws IOException {
         this.copyModulesApplicationClassesArtifact(project.getArtifact(), modulesDirectory);
-        if (this.getAppConfiguration().isIncludeDependencies()) {
+        if (this.getAppConfiguration().isIncludeOnlyDirectDependencies()) {
+            this.getLog().info("Include only direct dependencies.");
+            for (Artifact artifact : project.getDependencyArtifacts()) {
+                this.copyModulesApplicationClassesArtifact(artifact, modulesDirectory);
+            }
+        } else if (this.getAppConfiguration().isIncludeDependencies()) {
             for (Artifact artifact : project.getArtifacts()) {
                 this.copyModulesApplicationClassesArtifact(artifact, modulesDirectory);
             }
         } else {
-            this.getLog().debug("Inclusion of dependencies has been disbaled");
+            this.getLog().debug("Inclusion of dependencies has been disabled");
         }
     }
 
