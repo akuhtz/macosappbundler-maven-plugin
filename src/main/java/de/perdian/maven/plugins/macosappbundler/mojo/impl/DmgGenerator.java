@@ -121,6 +121,12 @@ public class DmgGenerator {
         Commandline dmgCommandLine = new Commandline();
         dmgCommandLine.setExecutable("hdiutil");
         dmgCommandLine.createArg().setValue("create");
+
+        dmgCommandLine.createArg().setValue("-size");
+        dmgCommandLine.createArg().setValue("240m");
+        dmgCommandLine.createArg().setValue("-fs");
+        dmgCommandLine.createArg().setValue("HFS+");
+
         dmgCommandLine.createArg().setValue("-srcfolder");
         dmgCommandLine.createArg().setValue(bundleDirectory.getAbsolutePath());
         dmgCommandLine.createArg().setValue(dmgFile.getAbsolutePath());
