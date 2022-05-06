@@ -44,4 +44,10 @@ public class DmgConfiguration {
     @Parameter
     public String dmgFileName = null;
 
+    @Parameter
+    public String size = null;
+
+    @Parameter
+    public String fs = null;
+
 }

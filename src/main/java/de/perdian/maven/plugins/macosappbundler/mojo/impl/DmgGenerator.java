@@ -16,8 +16,10 @@
  */
 package de.perdian.maven.plugins.macosappbundler.mojo.impl;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -122,17 +124,60 @@ public class DmgGenerator {
         dmgCommandLine.setExecutable("hdiutil");
         dmgCommandLine.createArg().setValue("create");
 
-        dmgCommandLine.createArg().setValue("-size");
-        dmgCommandLine.createArg().setValue("240m");
-        dmgCommandLine.createArg().setValue("-fs");
-        dmgCommandLine.createArg().setValue("HFS+");
+        // allow to set the size of the filesystem for hdiutil, e.g. 100m
+        if (this.getDmgConfiguration().size != null && !this.getDmgConfiguration().size.isEmpty()) {
+            dmgCommandLine.createArg().setValue("-size");
+            dmgCommandLine.createArg().setValue(this.getDmgConfiguration().size);
+        }
+
+        // allow to set the filesystem to use, e.g. HFS+
+        if (this.getDmgConfiguration().fs != null && !this.getDmgConfiguration().fs.isEmpty()) {
+            dmgCommandLine.createArg().setValue("-fs");
+            dmgCommandLine.createArg().setValue(this.getDmgConfiguration().fs);
+        }
 
         dmgCommandLine.createArg().setValue("-srcfolder");
         dmgCommandLine.createArg().setValue(bundleDirectory.getAbsolutePath());
         dmgCommandLine.createArg().setValue(dmgFile.getAbsolutePath());
         dmgCommandLine.createArg().setValue("-volname");
         dmgCommandLine.createArg().setValue(this.getVolumeName());
-        int returnValue = dmgCommandLine.execute().waitFor();
+
+        Process process= dmgCommandLine.execute();
+        Thread ioThread = null;
+        int returnValue = -1;
+        try {
+            ioThread = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        final BufferedReader reader = new BufferedReader(
+                                new InputStreamReader(process.getInputStream()));
+                        String line = null;
+                        while ((line = reader.readLine()) != null) {
+                            getLog().info("Process output: " + line);
+                        }
+                        reader.close();
+                    } catch (final Exception e) {
+                        getLog().warn("Read process output failed.", e);
+                    }
+                }
+            };
+            ioThread.start();
+
+            returnValue = process.waitFor();
+
+        }
+        finally {
+            if (ioThread != null && ioThread.isAlive()) {
+                try {
+                    ioThread.interrupt();
+                }
+                catch(Exception ex) {
+                    getLog().warn("Interrupt process reader thread failed.", ex);
+                }
+            }
+        }
+
         if (returnValue != 0) {
             if (this.getDmgConfiguration().autoFallback && !fallback) {
                 generateDmgArchiveGenIsoImage(bundleDirectory, dmgFile, true);
